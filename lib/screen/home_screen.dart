@@ -14,6 +14,45 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late List<DataKelas> _filteredKelas;
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedLevel = 'Semua';
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredKelas = dataKelasList;
+    _searchController.addListener(_filterKelas);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterKelas() {
+    setState(() {
+      _filteredKelas = dataKelasList.where((kelas) {
+        final matchesSearch = kelas.namaKelas
+            .toLowerCase()
+            .contains(_searchController.text.toLowerCase());
+        final matchesLevel = _selectedLevel == 'Semua' ||
+            kelas.levelKelas
+                .toLowerCase()
+                .contains(_selectedLevel.toLowerCase());
+        return matchesSearch && matchesLevel;
+      }).toList();
+    });
+  }
+
+  void _onLevelChanged(String level) {
+    setState(() {
+      _selectedLevel = level;
+      _filterKelas();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,42 +80,129 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 800;
-          final crossAxisCount = constraints.maxWidth >= 1200 ? 3 : 2;
-
-          if (!isWide) {
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: dataKelasList.length,
-              itemBuilder: (context, index) {
-                final kelas = dataKelasList[index];
-                return _KelasListCard(kelas: kelas);
-              },
-            );
-          }
-
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1200),
-              child: GridView.builder(
-                padding: const EdgeInsets.all(24),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 2.5,
+      body: Column(
+        children: [
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari kelas...',
+                hintStyle: const TextStyle(fontFamily: 'Quicksand'),
+                prefixIcon: const Icon(Icons.search, color: primaryColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: primaryColor),
                 ),
-                itemCount: dataKelasList.length,
-                itemBuilder: (context, index) {
-                  final kelas = dataKelasList[index];
-                  return _KelasListCard(kelas: kelas);
-                },
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: primaryColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: primaryColor, width: 2),
+                ),
               ),
             ),
-          );
-        },
+          ),
+
+          // Level Filter Chips
+          SizedBox(
+            height: 50,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _buildFilterChip('Semua'),
+                _buildFilterChip('Dasar'),
+                _buildFilterChip('Pemula'),
+                _buildFilterChip('Menengah'),
+                _buildFilterChip('Mahir'),
+                _buildFilterChip('Profesional'),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // List/Grid Content
+          Expanded(
+            child: _filteredKelas.isEmpty
+                ? Center(
+                    child: Text(
+                      'Kelas tidak ditemukan',
+                      style: const TextStyle(
+                        fontFamily: 'Quicksand',
+                        color: primaryColor,
+                      ),
+                    ),
+                  )
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth >= 800;
+                      final crossAxisCount =
+                          constraints.maxWidth >= 1200 ? 3 : 2;
+
+                      if (!isWide) {
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredKelas.length,
+                          itemBuilder: (context, index) {
+                            final kelas = _filteredKelas[index];
+                            return _KelasListCard(kelas: kelas);
+                          },
+                        );
+                      }
+
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1200),
+                          child: GridView.builder(
+                            padding: const EdgeInsets.all(24),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: crossAxisCount,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: 2.5,
+                            ),
+                            itemCount: _filteredKelas.length,
+                            itemBuilder: (context, index) {
+                              final kelas = _filteredKelas[index];
+                              return _KelasListCard(kelas: kelas);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label) {
+    final isSelected = _selectedLevel == label;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: FilterChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Quicksand',
+            color: isSelected ? Colors.white : primaryColor,
+          ),
+        ),
+        selected: isSelected,
+        onSelected: (_) => _onLevelChanged(label),
+        backgroundColor: Colors.transparent,
+        selectedColor: primaryColor,
+        side: BorderSide(
+          color: primaryColor,
+          width: isSelected ? 0 : 1.2,
+        ),
       ),
     );
   }
