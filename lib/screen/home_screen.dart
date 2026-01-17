@@ -57,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: bgColor,
         elevation: 0,
@@ -80,105 +81,107 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Cari kelas...',
-                hintStyle: const TextStyle(fontFamily: 'Quicksand'),
-                prefixIcon: const Icon(Icons.search, color: primaryColor),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: primaryColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: primaryColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: primaryColor, width: 2),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Cari kelas...',
+                  hintStyle: const TextStyle(fontFamily: 'Quicksand'),
+                  prefixIcon: const Icon(Icons.search, color: primaryColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: primaryColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: primaryColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: primaryColor, width: 2),
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Level Filter Chips
-          SizedBox(
-            height: 50,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildFilterChip('Semua'),
-                _buildFilterChip('Dasar'),
-                _buildFilterChip('Pemula'),
-                _buildFilterChip('Menengah'),
-                _buildFilterChip('Mahir'),
-                _buildFilterChip('Profesional'),
-              ],
+            // Level Filter Chips
+            SizedBox(
+              height: 50,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _buildFilterChip('Semua'),
+                  _buildFilterChip('Dasar'),
+                  _buildFilterChip('Pemula'),
+                  _buildFilterChip('Menengah'),
+                  _buildFilterChip('Mahir'),
+                  _buildFilterChip('Profesional'),
+                ],
+              ),
             ),
-          ),
 
-          const SizedBox(height: 8),
+            const SizedBox(height: 8),
 
-          // List/Grid Content
-          Expanded(
-            child: _filteredKelas.isEmpty
-                ? Center(
-                    child: Text(
-                      'Kelas tidak ditemukan',
-                      style: const TextStyle(
-                        fontFamily: 'Quicksand',
-                        color: primaryColor,
+            // List/Grid Content
+            Expanded(
+              child: _filteredKelas.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Kelas tidak ditemukan',
+                        style: const TextStyle(
+                          fontFamily: 'Quicksand',
+                          color: primaryColor,
+                        ),
                       ),
-                    ),
-                  )
-                : LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth >= 800;
-                      final crossAxisCount =
-                          constraints.maxWidth >= 1200 ? 3 : 2;
+                    )
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isWide = constraints.maxWidth >= 800;
+                        final crossAxisCount =
+                            constraints.maxWidth >= 1200 ? 3 : 2;
 
-                      if (!isWide) {
-                        return ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _filteredKelas.length,
-                          itemBuilder: (context, index) {
-                            final kelas = _filteredKelas[index];
-                            return _KelasListCard(kelas: kelas);
-                          },
-                        );
-                      }
-
-                      return Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 1200),
-                          child: GridView.builder(
-                            padding: const EdgeInsets.all(24),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
-                              childAspectRatio: 2.5,
-                            ),
+                        if (!isWide) {
+                          return ListView.builder(
+                            padding: const EdgeInsets.all(16),
                             itemCount: _filteredKelas.length,
                             itemBuilder: (context, index) {
                               final kelas = _filteredKelas[index];
                               return _KelasListCard(kelas: kelas);
                             },
+                          );
+                        }
+
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 1200),
+                            child: GridView.builder(
+                              padding: const EdgeInsets.all(24),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                mainAxisSpacing: 16,
+                                crossAxisSpacing: 16,
+                                childAspectRatio: 2.5,
+                              ),
+                              itemCount: _filteredKelas.length,
+                              itemBuilder: (context, index) {
+                                final kelas = _filteredKelas[index];
+                                return _KelasListCard(kelas: kelas);
+                              },
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
